@@ -8,8 +8,9 @@ import scalafx.scene.control.Button
 import scalafx.scene.effect.BlendMode.{Green, Red}
 import scalafx.scene.layout.VBox
 import scalafx.scene.text.Font
+import scenes.widget.MenuButton
 
-class MainMenu extends Scene {
+class MainScene(override val manager: SceneManager) extends ManagedScene(manager) {
   root = new VBox {
     fillWidth = true
     alignment = Pos.Center
@@ -17,11 +18,11 @@ class MainMenu extends Scene {
 
     children = Seq(
       new MenuButton("Enter Game", () => {
-        SceneManager.changeScene("game")
+        manager.transition("game")
       }),
 
       new MenuButton("Options", () => {
-        SceneManager.changeScene("options")
+        manager.transition("options")
       }),
 
       new MenuButton("Exit", () => {

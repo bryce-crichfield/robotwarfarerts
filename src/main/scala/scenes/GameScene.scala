@@ -1,46 +1,53 @@
 package scenes
 
-import game.InputAction.KeyDown
-import game.{Action, InputAction, World}
-import javafx.beans.value.ObservableBooleanValue
-import scalafx.Includes.when
+import game.action.Action
+import game.action.InputAction.KeyDown
+import game.component.Renderable
+import game.{Entity, World}
 import scalafx.application.Platform
-import scalafx.beans.property.{BooleanProperty, DoubleProperty, IntegerProperty, ObjectProperty}
-import scalafx.scene.{Node, Scene}
-import scalafx.scene.layout.Pane
-import scalafx.scene.paint.Color.Blue
+import app.AudioResource
+import app.AudioContext
 
-import scala.collection.mutable.ListBuffer
-import scala.concurrent.Future
-
-class GameScene extends Scene {
+class GameScene(override val manager: SceneManager) extends ManagedScene(manager) {
   private var delta_time = 0.0d
-  private var last_time = System.nanoTime()
+  private var last_update_time = System.nanoTime()
+  private var last_render_time = System.nanoTime()
   private var actions = List[Action]()
-  private val frame_prop = IntegerProperty(0)
-  private val world_prop = ObjectProperty(World.initial)
+  private val world = World.initial
 
-  frame_prop.onChange {
-    val now = System.nanoTime()
-    val delta = (now - last_time) / 1000000000.0d
-    last_time = now
-    val (new_world, new_actions) = world_prop().update(actions, delta)
-    actions = new_actions
-    world_prop() = new_world
-    Platform.runLater(() => GameScene.this.content = world_prop().render())
-  }
-
-  val animation = new javafx.animation.AnimationTimer {
+  private val game_loop = new javafx.animation.AnimationTimer {
     override def handle(now: Long): Unit = {
-      frame_prop() = frame_prop() + 1
+      val update_delta = (now - last_update_time) / 1e9d
+      val render_delta = (now - last_render_time) / 1e9d
+
+      actions = world.update(actions, update_delta)
+      last_update_time = now
+
+      if (render_delta >= (1d / 60)) {
+        Platform.runLater {
+          content = world.entities.collect {
+            case entity: Entity with Renderable =>
+              entity.render()
+          }
+        }
+
+        last_render_time = now
+      }
     }
   }
 
-  animation.start()
+  override def onEnter(): Unit = {
+    game_loop.start()
+  }
+
+  override def onExit(): Unit = {
+    game_loop.stop()
+  }
+
 
   onKeyPressed  = (event) => {
     if (event.getCode == javafx.scene.input.KeyCode.ESCAPE) {
-      SceneManager.changeScene("main")
+      manager.transition("main")
     }
     actions ::= KeyDown(event.getText)
   }

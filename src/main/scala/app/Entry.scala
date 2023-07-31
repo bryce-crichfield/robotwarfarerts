@@ -3,20 +3,38 @@ package app
 import scalafx.application.JFXApp3
 import scalafx.application.JFXApp3.PrimaryStage
 import scalafx.scene.Scene
-import scenes.{GameScene, MainMenu, OptionsMenu, SceneManager}
+import scenes.{GameScene, MainScene, OptionsScene, SceneManager}
 
 object Entry extends JFXApp3 {
-  SceneManager.addScene("main", new MainMenu())
-  SceneManager.addScene("options", new OptionsMenu())
-  SceneManager.addScene("game", new GameScene())
-
   override def start(): Unit = {
+    AudioResource.load()
+
+
     stage = new PrimaryStage {
-      title = "Game Graphics"
-      width = 800
-      height = 800
-      scene = new MainMenu()
+      title = "Robot Warfare"
+      width = Settings.resolution_width()
+      height = Settings.resolution_height()
+      scene = new Scene()
     }
+
+    Settings.resolution_width.onChange { (_, _, newValue) =>
+      stage.width = newValue.doubleValue()
+    }
+
+    Settings.resolution_height.onChange { (_, _, newValue) =>
+      stage.height = newValue.doubleValue()
+    }
+
+    val manager = new SceneManager(stage)
+    manager += ("main", manager => new MainScene(manager))
+    manager += ("options", manager => new OptionsScene(manager))
+    manager += ("game", manager => new GameScene(manager))
+
+    manager.transition("main")
   }
 
+
+  override def stopApp(): Unit = {
+    AudioResource.unload()
+  }
 }
