@@ -1,0 +1,29 @@
+id: file://<WORKSPACE>/src/main/scala/app/AudioResource.scala:[619..620) in Input.VirtualFile("file://<WORKSPACE>/src/main/scala/app/AudioResource.scala", "package app
+
+import scala.collection.mutable.HashMap
+
+object AudioResource {AudioResource
+  private var media = new HashMap[String, scalafx.scene.media.Media]
+
+  def load(): Unit = {
+    // recursively load all audio files in the resources/sounds directory
+    val files = new java.io.File("resources/sounds").listFiles
+    for (file <- files) {
+      if (file.isFile) {
+        val name = file.getName
+        val path = file.toURI().toString()
+        media(name) = new scalafx.scene.media.Media(path)
+      }
+    }
+  }
+
+  def unload(): Unit = {
+    media = new HashMap[String, scalafx.scene.media.Media]
+  }
+
+  def 
+}
+")
+file://<WORKSPACE>/src/main/scala/app/AudioResource.scala:25: error: expected identifier; obtained rbrace
+}
+^
